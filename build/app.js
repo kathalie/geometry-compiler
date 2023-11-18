@@ -9,11 +9,6 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.get('/', (req, res) => {
-    //let board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-8, 8, 8, -8]});
-    //var p = board.create('point', [1, 3], {name: 'point'});
-    //let board: JXG.Board = req.body.board
-    //(board: JXG.Board) => board.create('point', [1, 3], {name: 'point'})
-    //(board: JXG.Board) => board.create('line',["A","B"], {strokeColor:'#00ff00',strokeWidth:2});
     res.send([
         { elementType: 'point', parents: [-1, 1], attributes: { name: 'A' } },
         { elementType: 'point', parents: [2, -1], attributes: { name: 'B' } },
