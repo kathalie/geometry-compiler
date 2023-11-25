@@ -3,7 +3,7 @@
 ПРОВЕСТИ   ПРЯМУ   ЧЕРЕЗ  ДВІ ТОЧКИ A, B.
 
 ПОБУДУВАТИ  ПЕРПЕНДИКУЛЯР  ДО ПРЯМОЇ   (AB)  В ТОЧЦІ C.
-
+```
 <нуль> ::= 0
 <ненульова цифра> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 <цифра> ::= <нуль> | <ненульова цифра>
@@ -36,3 +36,24 @@
 <command> ::= <operator> <object>
 
 <task> ::= { <command> '.' } 'eos'
+```
+
+```
+ПОЗНАЧИТИ ТОЧКУ: 
+{
+    elementType: 'point', 
+    parents: [-10, 1], 
+    attributes: {name: 'C'}
+},
+ПРОВЕСТИ ПРЯМУ:
+{
+    elementType: 'line', 
+    parents: ["A", "B"]
+}
+ПОБУДУВАТИ ВІДРІЗОК:
+{
+    elementType: 'line',
+    parents: ["A", "B"],
+    attributes: {straightFirst:false, straightLast:false}
+}
+```
