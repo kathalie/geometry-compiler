@@ -1,7 +1,8 @@
-import {IToken, TokenType} from "chevrotain";
+import {TokenType} from "chevrotain";
 import {LexerIterator} from "../lexer/lexer-iterator.js";
 import {Token} from "../lexer/token.js";
-import {FractionalLiteral, Identifier, IntegerLiteral, KeyWord, Operator, Separator} from "../lexer/token-types.js";
+import {FractionalLiteral, Identifier, IntegerLiteral, KeyWord, Operator} from "../lexer/token-types.js";
+import {ASTNode, CommandNode, CoordsNode, GraphicalObjectNode, PointNode, TaskNode} from "./nodes.js";
 
 
 class SyntaxError extends Error {
@@ -9,33 +10,41 @@ class SyntaxError extends Error {
         super(`Expecting a ${expectedToken} token.`);
     }
 }
-interface ASTNode {
-    toString(): string;
-}
 
-class Node implements ASTNode{
-    constructor(public type: string, public children: ASTNode[] = []) {
-    }
+export type IdentifiersTable = Map<string, { x: number, y: number } >;
 
-    public toString = (): string =>
-        `${this.type}: (${this.children.map(node => node.toString()).join(', ')})`;
-}
-
-class Leaf implements ASTNode {
-    constructor(public type: string, public value: string) {
-    }
-
-    public toString = (): string => `${this.type} = ${this.value}`;
-}
+// export interface ASTNode {
+//     toString(): string;
+// }
+//
+// export class Node implements ASTNode{
+//     constructor(public type: string, public children: ASTNode[] = []) {
+//     }
+//
+//     public toString = (): string =>
+//         `${this.type}: (${this.children.map(node => node.toString()).join(', ')})`;
+// }
+//
+// export class Leaf implements ASTNode {
+//     constructor(public type: string, public value: string) {
+//     }
+//
+//     public toString = (): string => `${this.type} = ${this.value}`;
+// }
 
 export class Parser {
-    private currentToken?: Token | null;
+    //private currentToken?: Token | null;
+    private identifiers: IdentifiersTable = new Map();
 
     constructor(private tokenIterator: LexerIterator) {
         if (!this.tokenIterator.hasNext())
             throw new SyntaxError(`any`);
 
-        this.currentToken = null;
+        //this.currentToken = null;
+    }
+
+    public get identifiersTable(): IdentifiersTable {
+        return this.identifiers;
     }
 
     private tryNextToken = (expectedTokenType: TokenType | null = null): Token => {
@@ -57,11 +66,11 @@ export class Parser {
         return nextToken;
     };
 
-    public parseTask(): ASTNode {
-        const task = new Node('Task');
+    public parseTask(): TaskNode {
+        const task = new TaskNode();
 
         while (this.tokenIterator.hasNext()) {
-            task.children.push(this.parseCommand());
+            task.commands.push(this.parseCommand());
         }
 
         // if (this.currentToken?.value !== 'eos') {
@@ -70,23 +79,23 @@ export class Parser {
 
         return task;
     }
-    private parseCommand(): ASTNode {
+    private parseCommand(): CommandNode {
         const operator = this.parseOperator();
         const object = this.parseObject();
         const separator = this.tryNextToken();
 
         if (separator.value != '.') throw new SyntaxError('.');
 
-        return new Node('Command', [operator, object]);
+        return new CommandNode(operator, object);
     }
 
-    private parseOperator(): ASTNode {
+    private parseOperator(): string {
         const operator = this.tryNextToken(Operator);
 
-        return new Leaf('Operator', operator.value);
+        return operator.value;
     }
 
-    private parseObject(): ASTNode {
+    private parseObject(): GraphicalObjectNode {
         const keyWord = this.tryNextToken(KeyWord);
         const keyWordValue = keyWord.value;
 
@@ -104,21 +113,27 @@ export class Parser {
         //}
     }
 
-    private parsePoint(): ASTNode {
+    private parsePoint(): PointNode {
         const pointId = this.parseIdPoint();
         const pointCoords = this.parseCoords();
 
-        return new Node('Point', [pointId, pointCoords]);
+        //TODO maybe worth removing
+        if (this.identifiers.has(pointId))
+            throw new Error(`Identifier ${pointId} is already declared.`);
+
+        this.identifiers.set(pointId, {x: pointCoords.x, y: pointCoords.y})
+
+        return new PointNode(pointId, pointCoords);
     }
 
 
-    private parseIdPoint(): ASTNode {
+    private parseIdPoint(): string {
         const pointId = this.tryNextToken(Identifier);
 
-        return new Leaf('Point_ID', pointId.value);
+        return pointId.value;
     }
 
-    private parseCoords(): ASTNode {
+    private parseCoords(): CoordsNode {
         const lb = this.tryNextToken();
 
         if (lb.value != '(') throw new SyntaxError('(');
@@ -133,15 +148,17 @@ export class Parser {
         const rb = this.tryNextToken();
         if (rb.value != ')') throw new SyntaxError(')');
 
-        return new Node('Coords', [x, y]);
+        return new CoordsNode(x, y);
     }
 
-    private parseAnyNumber(): ASTNode {
+    private parseAnyNumber(): number {
         const nextToken = this.tryNextToken();
 
-        if (nextToken.tokenType != FractionalLiteral && nextToken.tokenType != IntegerLiteral)
-            throw new SyntaxError('numeric');
+        if (nextToken.tokenType == FractionalLiteral)
+            return parseFloat(nextToken.value);
+        else if (nextToken.tokenType == IntegerLiteral)
+            return parseInt(nextToken.value);
 
-        return new Leaf('Number', nextToken.value);
+        throw new SyntaxError('numeric');
     }
 }
