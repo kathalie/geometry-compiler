@@ -1,5 +1,10 @@
 import JXG from "jsxgraph";
 import {fetchElements} from "./fetch";
+import {getById} from "./helpers";
+
+function initedBoard(): JXG.Board {
+  return JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-8, 8, 8, -8]});
+}
 
 function initDrawImageButton() {
 
@@ -8,17 +13,33 @@ function initDrawImageButton() {
   drawImageButton.addEventListener('click', (event) => {
     event.preventDefault();
 
-    fetchElements().then((elements) => {
-      const board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-8, 8, 8, -8]});
+    const errorDiv = getById('error_div');
+    const board = getById('jxgbox');
 
-      for (let element of elements) {
-        board.create(element.elementType, element.parents, element.attributes);
-      }
-    });
+    fetchElements()
+      .then(async res => {
+        if (!res.ok)
+          throw Error(await res.text());
+
+        return res.json();
+      })
+      .then(elements => {
+        board.hidden = false;
+        errorDiv.innerText = '';
+
+        for (let element of elements) {
+          initedBoard().create(element.elementType, element.parents, element.attributes);
+        }
+      })
+      .catch(error => {
+        board.hidden = true;
+        errorDiv.innerText = error.message;
+      });
   });
 }
 
 function init() {
+  initedBoard();
   initDrawImageButton();
 }
 
