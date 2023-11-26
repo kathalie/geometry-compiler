@@ -2,8 +2,8 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import {LexerIterator} from "./lexer/lexer-iterator.js";
-import {Parser} from "./syntax_analyzer/parser.js";
-import {Translator} from "./semantic_analyzer/translator.js";
+import {SyntaxError, Parser} from "./syntax_analyzer/parser.js";
+import {SemanticError, Translator} from "./semantic_analyzer/translator.js";
 
 dotenv.config();
 
@@ -16,7 +16,6 @@ app.get('/', (req, res) => {
   const input = req.query.task as string;
 
   const lexerIterator = new LexerIterator(input, false);
-
   // while(lexerIterator.hasNext()) {
   //   console.log(lexerIterator.next()?.toString());
   // }
@@ -24,15 +23,27 @@ app.get('/', (req, res) => {
   //const tokens = lexer.tokenize(input).tokens
   //console.log(tokens)
 
-  const parser = new Parser(lexerIterator);
-  const parsedTask = parser.parseTask();
-  const identifiersTable = parser.identifiersTable;
+  try {
 
-  console.log(parsedTask.toString());
+    const parser = new Parser(lexerIterator);
+    const parsedTask = parser.parseTask();
+    const identifiersTable = parser.identifiersTable;
 
-  const translator = new Translator(parsedTask, identifiersTable);
+    console.log(parsedTask.toString());
 
-  res.send(translator.translate());
+    const translator = new Translator(parsedTask, identifiersTable);
+
+    const translation = translator.translate();
+
+    res.status(200).send(translation);
+  } catch (e) {
+    if (e instanceof SyntaxError)
+      res.status(500).send(`Виявлено синтаксичну помилку: ${e.message}`);
+    else if (e instanceof SemanticError)
+      res.status(500).send(`Виявлено семантичну помилку: ${e.message}`);
+    else
+      res.status(500).send(`На сервері сталась невідома помилка :(`);
+  }
 });
 
 app.listen(port, () => {
