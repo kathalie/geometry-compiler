@@ -1,6 +1,6 @@
-import {IdentifiersTable} from "../syntax_analyzer/parser.js";
+import {CoordinateObject, IdentifiersTable} from "../syntax_analyzer/parser.js";
 import {
-    CommandNode,
+    CommandNode, CoordsNode,
     GraphicalObjectNode,
     LineNode,
     LineSegmentNode,
@@ -22,7 +22,31 @@ export type GraphicalCommand = {
     attributes?: Object | undefined
 }
 
+const drawPointCommand = (pointId: string, coords: CoordinateObject): GraphicalCommand => {
+    return {
+        elementType: 'point',
+        parents: [coords.x, coords.y],
+        attributes: {name: pointId},
+    }
+}
+
+const drawLineCommand = (pointId1: string, pointId2: string): GraphicalCommand => {
+    return {
+        elementType: 'line',
+        parents: [pointId1, pointId2]
+    };
+}
+
+const drawLineSegmentCommand = (pointId1: string, pointId2: string): GraphicalCommand => {
+    return {
+        elementType: 'line',
+        parents: [pointId1, pointId2],
+        attributes: {straightFirst:false, straightLast:false}
+    };
+}
+
 export class Translator {
+    private drawnPoints: string[] = [];
     constructor(private taskNode: TaskNode, private identifiers: IdentifiersTable) {
     }
 
@@ -63,11 +87,9 @@ export class Translator {
 
         const coords = this.identifiers.get(pointId)!;
 
-        return [{
-            elementType: 'point',
-            parents: [coords.x, coords.y],
-            attributes: {name: pointId},
-        }];
+        this.drawnPoints.push(pointId)
+
+        return [drawPointCommand(pointId, coords)];
     }
 
     private translateLine(lineNode: LineNode): GraphicalCommand[] {
@@ -80,10 +102,16 @@ export class Translator {
         if (!this.identifiers.has(p2.id))
             throw new SemanticError(`Coordinates for point ${p2.id} were never stated.`);
 
-        return [{
-            elementType: 'line',
-            parents: [p1.id, p2.id]
-        }];
+        const commands =  [];
+
+        for (const p of [p1, p2]) {
+            if (!this.drawnPoints.includes(p.id))
+                commands.push(drawPointCommand(p.id, p.coords));
+        }
+
+        commands.push(drawLineCommand(p1.id, p2.id));
+
+        return commands;
     }
 
     private translateLineSegment(segmentNode: LineSegmentNode): GraphicalCommand[] {
@@ -96,10 +124,15 @@ export class Translator {
         if (!this.identifiers.has(p2.id))
             throw new SemanticError(`Coordinates for point ${p2.id} were never stated.`);
 
-        return [{
-            elementType: 'line',
-            parents: [p1.id, p2.id],
-            attributes: {straightFirst:false, straightLast:false}
-        }];
+        const commands =  [];
+
+        for (const p of [p1, p2]) {
+            if (!this.drawnPoints.includes(p.id))
+                commands.push(drawPointCommand(p.id, p.coords));
+        }
+
+        commands.push(drawLineSegmentCommand(p1.id, p2.id));
+
+        return commands;
     }
 }
