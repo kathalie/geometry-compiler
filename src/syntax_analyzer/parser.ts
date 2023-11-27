@@ -210,8 +210,9 @@ export class Parser {
         //const point2 = this.parsePointWithPossiblyKeyword();
         const point2 = this.parsePoint();
 
-        if (point1.coords == point2.coords)
-            throw new SemanticError(`Точки ${point1.id}, ${point2.id} мають однакові координати ${point1.coords} і через них неможливо провести пряму.`);
+        if (point1.coords.x == point2.coords.x && point1.coords.y == point2.coords.y)
+            throw new SemanticError(`Точки ${point1.id}, ${point2.id} мають однакові координати (${point1.coords.x}, ${point1.coords.y}) і через них неможливо провести пряму.`);
+
         return {p1: point1, p2: point2};
     }
 
