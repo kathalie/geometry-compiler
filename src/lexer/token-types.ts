@@ -1,11 +1,11 @@
 import {createToken, Lexer} from "chevrotain";
-import {identifierRegex, integerNumberRegex} from "./constants/regex.js";
+import {integerNumberRegex} from "./constants/regex.js";
 import {CustomPatternMatcherFunc} from "@chevrotain/types";
-import {builtInFunctions, keyWords} from "./constants/reserved-words.js";
+import {endingsKeywords, endingsOperators, StemmingInfo} from "./constants/reserved-words.js";
 
 const identifiersTable: Map<string, number> = new Map();
 function matchIdentifier(text: string, startOffset: number) {
-    const execResult = RegExp(`^${identifierRegex.source}`).exec(text.substring(startOffset));
+    const execResult = RegExp(`^[A-Z]`).exec(text.substring(startOffset));
 
     if (!execResult) return null;
 
@@ -43,9 +43,33 @@ export const WhiteSpace = createToken({
     group: Lexer.SKIPPED
 });
 
+function matchWithStemming(stemmingInfo: StemmingInfo): CustomPatternMatcherFunc {
+    return (text: string, startOffset: number) => {
+        const basesAndEndings = [] as string[];
+
+        for (const [base, endings] of Object.entries(stemmingInfo)) {
+            basesAndEndings.push(`${base}(${endings.join('|')})`);
+        }
+
+        const basesRegex = RegExp(Object.keys(stemmingInfo).join('|'));
+        const basesAndEndingsRegex= RegExp(basesAndEndings.join('|'));
+
+        const finalRegex = RegExp(`^(${basesAndEndingsRegex.source})`)
+        const execResult = finalRegex.exec(text.substring(startOffset));
+
+        if (!execResult) return null;
+
+        const stemmed = basesRegex.exec(execResult[0])![0];
+
+        return [stemmed];
+    }
+}
+
 export const KeyWord = createToken({
     name: "Key Word",
-    pattern: RegExp(keyWords.map(kw => `${kw}[А-ЯІЇЄ]*`).join('|')),
+    //pattern: RegExp(keyWords.map(kw => `${kw}[А-ЯІЇЄ]*`).join('|')),
+    pattern: matchWithStemming(endingsKeywords) as CustomPatternMatcherFunc,
+    line_breaks: false,
 });
 
 export const Separator = createToken({
@@ -55,5 +79,6 @@ export const Separator = createToken({
 
 export const Operator = createToken({
     name: "Operator",
-    pattern: RegExp(builtInFunctions.join('|'))
+    pattern: matchWithStemming(endingsOperators) as CustomPatternMatcherFunc,
+    line_breaks: false,
 });

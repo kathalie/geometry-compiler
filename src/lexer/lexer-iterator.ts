@@ -4,10 +4,13 @@ import {Token, toToken} from "./token.js";
 
 
 export class LexerIterator {
+    private currentToken: Token | null = null;
     private readonly tokens: IToken[];
     private readonly errors: ILexingError[];
     private tokenIndex: number = 0;
     private errorIndex: number = 0;
+    private tokenIndexSnapshots: number[] = [0];
+    private errorIndexSnapshots: number[] = [0];
 
     constructor(input: string, withErrors: boolean = true) {
         const lexingResult = lexer.tokenize(input);
@@ -48,15 +51,29 @@ export class LexerIterator {
     }
 
     public next(): Token {
-        if (!this.hasCorrectToken()) return this.nextErrorToken();
+        let nextToken: Token;
 
-        if (!this.hasErrorToken()) return this.nextCorrectToken();
+        if (!this.hasCorrectToken()) nextToken = this.nextErrorToken();
+        else if (!this.hasErrorToken()) nextToken = this.nextCorrectToken();
+        else nextToken = this.nextMinimumToken();
 
-        return this.nextMinimumToken();
+        return this.currentToken = nextToken;
     }
+
+    public current = (): Token | null => this.currentToken;
 
     public hasNext(): boolean {
         return this.hasCorrectToken() || this.hasErrorToken();
+    }
+
+    public takeSnapshot() {
+        this.tokenIndexSnapshots.push(this.tokenIndex);
+        this.errorIndexSnapshots.push(this.errorIndex);
+    }
+
+    public backToLastSnapshot() {
+        this.tokenIndex = this.tokenIndexSnapshots.pop() ?? 0;
+        this.errorIndex = this.errorIndexSnapshots.pop() ?? 0;
     }
 }
 
