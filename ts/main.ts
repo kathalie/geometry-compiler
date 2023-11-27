@@ -14,7 +14,8 @@ function initDrawImageButton() {
     event.preventDefault();
 
     const errorDiv = getById('error_div');
-    const board = getById('jxgbox');
+    const boardDiv = getById('jxgbox');
+    const board = initedBoard();
 
     fetchElements()
       .then(async res => {
@@ -24,15 +25,15 @@ function initDrawImageButton() {
         return res.json();
       })
       .then(elements => {
-        board.hidden = false;
+        boardDiv.hidden = false;
         errorDiv.innerText = '';
 
         for (let element of elements) {
-          initedBoard().create(element.elementType, element.parents, element.attributes);
+          board.create(element.elementType, element.parents, element.attributes);
         }
       })
       .catch(error => {
-        board.hidden = true;
+        boardDiv.hidden = true;
         errorDiv.innerText = error.message;
       });
   });
