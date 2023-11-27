@@ -16,25 +16,29 @@ app.get('/', (req, res) => {
   const input = req.query.task as string;
 
   const lexerIterator = new LexerIterator(input, false);
-  // while(lexerIterator.hasNext()) {
-  //   console.log(lexerIterator.next()?.toString());
-  // }
 
-  //const tokens = lexer.tokenize(input).tokens
-  //console.log(tokens)
+///
+  lexerIterator.takeSnapshot();
+  while(lexerIterator.hasNext()) {
+    console.log(lexerIterator.next()?.toString());
+  }
+  lexerIterator.backToLastSnapshot();
+///
 
   try {
 
     const parser = new Parser(lexerIterator);
     const parsedTask = parser.parseTask();
     const identifiersTable = parser.identifiersTable;
-
-    console.log(parsedTask.toString());
-
+///
+    console.log(JSON.stringify(parsedTask.tree(), null, 2));
+///
     const translator = new Translator(parsedTask, identifiersTable);
 
     const translation = translator.translate();
-
+///
+    console.log(translation)
+///
     res.status(200).send(translation);
   } catch (e) {
     if (e instanceof SyntaxError)

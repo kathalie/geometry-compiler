@@ -1,27 +1,35 @@
-import {GraphicalCommand} from "../semantic_analyzer/translator.js";
-
 export interface ASTNode {
-    toString: () => String
+    tree: () => Object
 }
 
-export class TaskNode implements ASTNode{
+export class TaskNode implements ASTNode {
     constructor(
         public commands: CommandNode[] = []
     ) {
     }
-    toString = () =>
-        `TASK: [${this.commands.map(c => c.toString()).join(', ')}]`;
+
+    tree = () => {
+        return {
+            task: this.commands.map(c => c.tree()),
+        }
+    }
 }
 
-export class CommandNode implements ASTNode{
+export class CommandNode implements ASTNode {
     constructor(
         public operator: string,
         public object: GraphicalObjectNode,
     ) {
     }
 
-    toString = () =>
-        `COMMAND: [${this.operator}, ${this.object.toString()}]`
+    tree = () => {
+        return {
+            command: {
+                operator: this.operator,
+                object: this.object.tree(),
+            }
+        }
+    }
 }
 
 export type GraphicalObjectNode = PointNode | LineNode | LineSegmentNode;
@@ -29,12 +37,18 @@ export type GraphicalObjectNode = PointNode | LineNode | LineSegmentNode;
 export class PointNode implements ASTNode {
     constructor(
         public id: string,
-        public coords?: CoordsNode | undefined,
+        public coords: CoordsNode,
     ) {
     }
 
-    toString = () =>
-        `POINT: [${this.id}, ${this.coords?.toString()}]`
+    tree = () => {
+        return {
+            point: {
+                id: this.id,
+                coords: this.coords.tree()
+            }
+        }
+    }
 }
 
 export class LineNode implements ASTNode {
@@ -44,8 +58,14 @@ export class LineNode implements ASTNode {
     ) {
     }
 
-    toString = () =>
-        `LINE: [${this.p1.toString()}, ${this.p2.toString()}]`
+    tree = () => {
+        return {
+            line: {
+                point1: this.p1.tree(),
+                point2: this.p2.tree(),
+            }
+        }
+    }
 }
 
 export class LineSegmentNode implements ASTNode {
@@ -55,8 +75,14 @@ export class LineSegmentNode implements ASTNode {
     ) {
     }
 
-    toString = () =>
-        `LINE SEGMENT: [${this.p1.toString()}, ${this.p2.toString()}]`
+    tree = () => {
+        return {
+            lineSegment: {
+                point1: this.p1.tree(),
+                point2: this.p2.tree(),
+            }
+        }
+    }
 }
 
 export class CoordsNode implements ASTNode {
@@ -66,8 +92,14 @@ export class CoordsNode implements ASTNode {
     ) {
     }
 
-    toString = () =>
-        `COORDS: [${this.x}, ${this.y}]`
+    tree = () => {
+        return {
+            coords: {
+                x: this.x,
+                y: this.y
+            }
+        }
+    }
 }
 
 export class PerpendicularNode implements ASTNode {
@@ -77,6 +109,12 @@ export class PerpendicularNode implements ASTNode {
     ) {
     }
 
-    toString = () =>
-        `PERPENDICULAR: [${this.to}, ${this.from}]`
+    tree = () => {
+        return {
+            perpendicular: {
+                to: this.to.tree(),
+                from: this.from.tree()
+            }
+        }
+    }
 }
