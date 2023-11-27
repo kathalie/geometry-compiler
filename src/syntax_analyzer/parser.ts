@@ -132,6 +132,25 @@ export class Parser {
 
         let pointCoords: CoordsNode;
 
+        if (this.identifiers.has(pointId)) {
+            const existingCoords= this.identifiers.get(pointId)!;
+
+            pointCoords = new CoordsNode(existingCoords.x, existingCoords.y);
+        }
+        else {
+            pointCoords = this.randomAverageCoords();
+        }
+
+        this.identifiers.set(pointId, {x: pointCoords.x, y: pointCoords.y})
+
+        return new PointNode(pointId, pointCoords);
+    }
+
+    private parsePointWithCoords(): PointNode {
+        const pointId = this.parsePointId();
+
+        let pointCoords: CoordsNode;
+
         try {
             this.tokenIterator.takeSnapshot();
             pointCoords = this.parseCoords();
@@ -173,13 +192,23 @@ export class Parser {
     }
 
     private parsePointsForStraightLine(): { p1: PointNode, p2: PointNode} {
-        const point1 = this.parsePointWithPossiblyKeyword();
+        //const point1 = this.parsePointWithPossiblyKeyword();
+        this.tokenIterator.takeSnapshot();
+        try {
+            const keyword = this.tryNextToken(KeyWord, keywords.point);
+        } catch(e) {
+            this.tokenIterator.backToLastSnapshot();
+            //this.tokenIterator.previous();
+        }
 
-        const coma = this.parseOptional(() =>
-            this.tryNextToken(Separator, ',')
-        );
+        const point1 = this.parsePoint();
+        //
+        // const coma = this.parseOptional(() =>
+        //     this.tryNextToken(Separator, ',')
+        // );
 
-        const point2 = this.parsePointWithPossiblyKeyword();
+        //const point2 = this.parsePointWithPossiblyKeyword();
+        const point2 = this.parsePoint();
 
         if (point1.coords == point2.coords)
             throw new SemanticError(`Точки ${point1.id}, ${point2.id} мають однакові координати ${point1.coords} і через них неможливо провести пряму.`);
@@ -226,7 +255,7 @@ export class Parser {
 
         switch (keyWord.value) {
             case keywords.point:
-                return this.parsePoint();
+                return this.parsePointWithCoords();
             case keywords.line: {
                 return this.parseLine();
             }

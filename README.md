@@ -26,7 +26,6 @@
 
 <line> ::= <line_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
 <line_segment> ::= <line_segment_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
-//<parallel_line> ::= <line_keyword>? "ПАРАЛЕЛЬН"
 <perpendicular> ::= "ПЕРПЕНДИКУЛЯ" <point> (<line> | <line_segment>)
 
 <object> ::= <point_keyword> <point> | <line> | <line_segment> | <perpendicular>
@@ -35,7 +34,7 @@
 
 <command> ::= <operator> <object>
 
-<task> ::= { <command> '.' } 'eos'
+<task> ::= { <command> '.' }
 ```
 
 ## Приклади
@@ -60,12 +59,10 @@
 }
 ```
 
-### Приклади команд
+### Приклади дпустимих задач
 
-`ПОЗНАЧИТИ ТОЧКУ A З КООРДИНАТАМИ (0, 0).`
+`ПОЗНАЧИТИ ТОЧКУ A З КООРДИНАТАМИ (0, 0). ПОЗНАЧИТИ ТОЧКУ B (1.2, 3.5). ПОБУДУВАТИ ВІДРІЗОК AB.`
 
-`ПРОВЕСТИ ПРЯМУ ЧЕРЕЗ ДВІ ТОЧКИ A, B.`
+`ПРОВЕСТИ ПРЯМУ ЧЕРЕЗ ДВІ ТОЧКИ A B. ПОБУДУВАТИ ПЕРПЕНДИКУЛЯР З ТОЧКИ C ДО ПРЯМОЇ AB.`
 
-`ПОБУДУВАТИ ПЕРПЕНДИКУЛЯР ДО ПРЯМОЇ AB В ТОЧЦІ C.`
-
-`ПОБУДУВАТИ ТРИКУТНИК ПО ТРЬОМ ВЕРШИНАМ А,В,С.`
+`ПОБУДУВАТИ ВІДРІЗОК AB. ПРОВЕСТИ ПРЯМУ CD. ПОБУДУВАТИ ПЕРПЕНДИКУЛЯР З ТОЧКИ F ДО ПРЯМОЇ CD. ПОБУДУВАТИ ПЕРПЕНДИКУЛЯР З ТОЧКИ K ДО ВІДРІЗКУ AB.`
