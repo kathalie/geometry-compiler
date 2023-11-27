@@ -1,8 +1,4 @@
-### Grammar
-
-ПРОВЕСТИ   ПРЯМУ   ЧЕРЕЗ  ДВІ ТОЧКИ A, B.
-
-ПОБУДУВАТИ  ПЕРПЕНДИКУЛЯР  ДО ПРЯМОЇ   (AB)  В ТОЧЦІ C.
+## Граматика мови
 ```
 <нуль> ::= 0
 <ненульова цифра> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
@@ -18,26 +14,32 @@
 
 <any_number> ::= <positive_int> | <negative_int> | <positive_float> | <negative_float>
 
-
-<id_point> ::= [A-Z]
-<id_line> ::= <id_point><id_point>
+<point_keyword> ::= "ТОЧ"
+<line_keyword> ::= "ПРЯМ"
+<line_segment_keyword> ::= "ВІДРІЗ"
 
 <coords> ::= '(' <any_number> ';' <any_number> ')'
 
-<operator> ::= "ПОБУДУВАТИ" | "ПРОВЕСТИ" | "ПОЗНАЧИТИ"
+<point_id> ::= [A-Z]
+<point> ::= <point_id> | <point_id> <coords>
+<point_with_possibly_keyword> ::= <point_keyword>? <point> 
 
-<point> ::= "ТОЧК" ( <id_point> <coords> | <id_point>)
-<line> ::= "ПРЯМ" <point> <point>
-<line_segment> ::= "ВІДРІЗ" <point> <point>
+<line> ::= <line_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
+<line_segment> ::= <line_segment_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
+
 <perpendicular> ::= "ПЕРПЕНДИКУЛЯР" ( <line> | <line_segment> ) <point>
 
-<object> ::= <point> | <line> | <line_segment>
+<object> ::= <point_keyword> <point> | <line> | <line_segment>
+
+<operator> ::= "ПОБУД" | "ПРОВ" | "ПОЗНА"
 
 <command> ::= <operator> <object>
 
 <task> ::= { <command> '.' } 'eos'
 ```
 
+## Приклади
+### Приклади обʼєктів, у які буде перекладено вхідний текст і передено на клієнт для подальшого відмалювання геометричних зображень відповідно до значень цих обʼктів.
 ```
 ПОЗНАЧИТИ ТОЧКУ: 
 {
@@ -57,3 +59,13 @@
     attributes: {straightFirst:false, straightLast:false}
 }
 ```
+
+### Приклади команд
+
+`ПОЗНАЧИТИ ТОЧКУ A З КООРДИНАТАМИ (0, 0).`
+
+`ПРОВЕСТИ ПРЯМУ ЧЕРЕЗ ДВІ ТОЧКИ A, B.`
+
+`ПОБУДУВАТИ ПЕРПЕНДИКУЛЯР ДО ПРЯМОЇ AB В ТОЧЦІ C.`
+
+`ПОБУДУВАТИ ТРИКУТНИК ПО ТРЬОМ ВЕРШИНАМ А,В,С.`
