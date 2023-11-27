@@ -69,11 +69,19 @@ export class LexerIterator {
     public takeSnapshot() {
         this.tokenIndexSnapshots.push(this.tokenIndex);
         this.errorIndexSnapshots.push(this.errorIndex);
+
     }
 
     public backToLastSnapshot() {
         this.tokenIndex = this.tokenIndexSnapshots.pop() ?? 0;
         this.errorIndex = this.errorIndexSnapshots.pop() ?? 0;
+    }
+
+    public previous(): Token {
+        //this.errorIndex--;
+        this.tokenIndex--;
+
+        return this.next();
     }
 }
 

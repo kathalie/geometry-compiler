@@ -3,7 +3,7 @@ import {
     CommandNode, CoordsNode,
     GraphicalObjectNode,
     LineNode,
-    LineSegmentNode,
+    LineSegmentNode, PerpendicularNode,
     PointNode,
     TaskNode
 } from "../syntax_analyzer/nodes.js";
@@ -74,16 +74,14 @@ export class Translator {
             return this.translateLineSegment(objectNode);
 
         // add perpendicular
-        return this.translateLineSegment(objectNode);
+        return this.translatePerpendicular(objectNode);
     }
 
     private translatePoint(pointNode: PointNode): GraphicalCommand[] {
         const pointId = pointNode.id;
 
         if (!this.identifiers.has(pointId))
-            throw new SemanticError(`No coordinates specified for a point ${pointNode.id} found.`);
-
-        //TODO think of how to better work with points: let points without coordinates or not
+            throw new SemanticError(`Для точки ${pointNode.id} на знайдено заданих координат.`);
 
         const coords = this.identifiers.get(pointId)!;
 
@@ -96,11 +94,9 @@ export class Translator {
         const p1 = lineNode.p1;
         const p2 = lineNode.p2;
 
-        if (!this.identifiers.has(p1.id))
-            throw new SemanticError(`Coordinates for point ${p1.id} were never stated.`);
-
-        if (!this.identifiers.has(p2.id))
-            throw new SemanticError(`Coordinates for point ${p2.id} were never stated.`);
+        for (const p of [p1, p2])
+            if (!this.identifiers.has(p.id))
+                throw new SemanticError(`Координати для точки ${p.id} не було задано.`);
 
         const commands =  [];
 
@@ -118,11 +114,9 @@ export class Translator {
         const p1 = segmentNode.p1;
         const p2 = segmentNode.p2;
 
-        if (!this.identifiers.has(p1.id))
-            throw new SemanticError(`Coordinates for point ${p1.id} were never stated.`);
-
-        if (!this.identifiers.has(p2.id))
-            throw new SemanticError(`Coordinates for point ${p2.id} were never stated.`);
+        for (const p of [p1, p2])
+            if (!this.identifiers.has(p.id))
+                throw new SemanticError(`Координати для точки ${p.id} не було задано.`);
 
         const commands =  [];
 
@@ -132,6 +126,35 @@ export class Translator {
         }
 
         commands.push(drawLineSegmentCommand(p1.id, p2.id));
+
+        return commands;
+    }
+
+    private translatePerpendicular(perpendicular: PerpendicularNode): GraphicalCommand[] {
+        const p = perpendicular.from;
+        const p1 = perpendicular.to.p1;
+        const p2 = perpendicular.to.p2;
+
+        const k = (p1.coords.y - p2.coords.y) / (p1.coords.x - p2.coords.x);
+        const b = p1.coords.y - k * p1.coords.x;
+
+        if (p.coords.x * k + b == p.coords.y)
+            throw new SemanticError('Точка, з якої має бути проведено перпендикуляр, не має лежати на прямій!');
+
+        const kPerpendicular = - 1 / k;
+        const bPerpendicular = p.coords.y - kPerpendicular * p.coords.x;
+
+        const x = (b - bPerpendicular) / (kPerpendicular - k);
+        const y = k * x + b;
+        const intersectionPointId = `${p.id}'`
+
+        const commands = [];
+
+        if (!this.drawnPoints.includes(p.id))
+            commands.push(drawPointCommand(p.id, p.coords));
+
+        commands.push(drawPointCommand(intersectionPointId, {x, y}));
+        commands.push(drawLineCommand(p.id, intersectionPointId));
 
         return commands;
     }

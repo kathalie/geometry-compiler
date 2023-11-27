@@ -26,10 +26,10 @@
 
 <line> ::= <line_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
 <line_segment> ::= <line_segment_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
+//<parallel_line> ::= <line_keyword>? "ПАРАЛЕЛЬН"
+<perpendicular> ::= "ПЕРПЕНДИКУЛЯ" <point> (<line> | <line_segment>)
 
-<perpendicular> ::= "ПЕРПЕНДИКУЛЯР" ( <line> | <line_segment> ) <point>
-
-<object> ::= <point_keyword> <point> | <line> | <line_segment>
+<object> ::= <point_keyword> <point> | <line> | <line_segment> | <perpendicular>
 
 <operator> ::= "ПОБУД" | "ПРОВ" | "ПОЗНА"
 

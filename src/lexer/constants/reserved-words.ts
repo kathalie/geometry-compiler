@@ -1,9 +1,17 @@
 export type StemmingInfo = Record<string, string[]>;
 
+export const keywords = {
+    point: 'ТОЧ',
+    line: 'ПРЯМ',
+    lineSegment: 'ВІДРІЗ',
+    perpendicular: 'ПЕРПЕНДИКУЛЯ',
+}
+
 export const endingsKeywords: StemmingInfo = {
-    'ТОЧ': ['КА', 'КУ', 'КИ', 'ЦІ', 'КАМ'],
-    'ПРЯМ': ['А', 'У', 'І', 'ІЙ', 'ИМ'],
-    'ВІДРІЗ': ['ОК', 'КИ', 'КУ', 'КАМ'],
+    [keywords.point]: ['КА', 'КУ', 'КИ', 'ЦІ', 'КАМ'],
+    [keywords.line]: ['А', 'У', 'І', 'ІЙ', 'ИМ', 'ОЇ'],
+    [keywords.lineSegment]: ['ОК', 'КИ', 'КУ', 'КАМ'],
+    [keywords.perpendicular]: ['Р', 'РИ', 'РОМ', 'РУ'],
 };
 
 export const endingsOperators: StemmingInfo = {

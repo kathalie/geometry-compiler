@@ -32,7 +32,7 @@ export class CommandNode implements ASTNode {
     }
 }
 
-export type GraphicalObjectNode = PointNode | LineNode | LineSegmentNode;
+export type GraphicalObjectNode = PointNode | LineNode | LineSegmentNode | PerpendicularNode;
 
 export class PointNode implements ASTNode {
     constructor(
