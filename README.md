@@ -1,40 +1,32 @@
-## Граматика мови
+## Граматика мови (LL(1))
 ```
-<нуль> ::= 0
-<ненульова цифра> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-<цифра> ::= <нуль> | <ненульова цифра>
-<довільна послідовність цифр> ::= <цифра> | <цифра><довільна послідовність цифр>
-<послідовність цифр> ::= <нуль> | <ненульова цифра> | <цифра><послідовність цифр>
-<натуральне число> ::= <цифра> | <ненульова цифра><послідовність цифр>
-
-<positive_int> ::= <цифра> | <ненульова цифра><послідовність цифр>
-<positive_float> ::= <int_num>"."<довільна послідовність цифр>
-<negative_int> ::= "-"<positive_int>
-<negative_float> ::= "-"<positive_float>
-
-<any_number> ::= <positive_int> | <negative_int> | <positive_float> | <negative_float>
-
-<point_keyword> ::= "ТОЧ"
-<line_keyword> ::= "ПРЯМ"
-<line_segment_keyword> ::= "ВІДРІЗ"
-
-<coords> ::= '(' <any_number> ';' <any_number> ')'
-
-<point_id> ::= [A-Z]
-<point> ::= <point_id> | <point_id> <coords>
-<point_with_possibly_keyword> ::= <point_keyword>? <point> 
-
-<line> ::= <line_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
-<line_segment> ::= <line_segment_keyword> <point_with_possibly_keyword> <point_with_possibly_keyword>
-<perpendicular> ::= "ПЕРПЕНДИКУЛЯ" <point> (<line> | <line_segment>)
-
-<object> ::= <point_keyword> <point> | <line> | <line_segment> | <perpendicular>
-
-<operator> ::= "ПОБУД" | "ПРОВ" | "ПОЗНА"
+<task> ::= { <command> '.' }
 
 <command> ::= <operator> <object>
 
-<task> ::= { <command> '.' }
+<operator> ::= "ПОБУД" | "ПРОВ" | "ПОЗНА"
+
+<object> ::= <point_with_keyword> | <line> | <line_segment> | <perpendicular>
+
+<line> ::= <line_keyword> <two_points>
+<line_segment> ::= <line_segment_keyword> <two_points>
+<two_points> ::= <point> <point>
+<perpendicular> ::= <perpendicular_keyword> <point> <perpendicular_to>
+<perpendicular_to> ::= <line> | <line_segment>
+
+<point> ::= <point_with_keyword> | <point_without_keyword>
+<point_with_keyword> ::= <point_keyword> <point_without_keyword>
+<point_without_keyword> ::= <point_id> <predefined_placing>
+<predefined_placing> ::= <coords> | ε
+
+<coords> ::= '(' <any_number> ';' <any_number> ')'
+
+
+<point_id> ::= [A-Z]
+<point_keyword> ::= "ТОЧ"
+<line_keyword> ::= "ПРЯМ"
+<line_segment_keyword> ::= "ВІДРІЗ"
+<perpendicular_keyword> ::= "ПЕРПЕНДИКУЛЯ"
 ```
 
 ## Приклади

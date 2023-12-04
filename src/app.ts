@@ -18,11 +18,9 @@ app.get('/', (req, res) => {
   const lexerIterator = new LexerIterator(input, false);
 
 ///
-  lexerIterator.takeSnapshot();
-  while(lexerIterator.hasNext()) {
-    console.log(lexerIterator.next()?.toString());
-  }
-  lexerIterator.backToLastSnapshot();
+//   while(lexerIterator.hasNext()) {
+//     console.log(lexerIterator.next()?.toString());
+//   }
 ///
 
   try {

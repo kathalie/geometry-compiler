@@ -9,8 +9,6 @@ export class LexerIterator {
     private readonly errors: ILexingError[];
     private tokenIndex: number = 0;
     private errorIndex: number = 0;
-    private tokenIndexSnapshots: number[] = [0];
-    private errorIndexSnapshots: number[] = [0];
 
     constructor(input: string, withErrors: boolean = true) {
         const lexingResult = lexer.tokenize(input);
@@ -31,8 +29,16 @@ export class LexerIterator {
         return toToken(this.tokens[this.tokenIndex++]);
     }
 
+    private peekNextCorrectToken(): Token {
+        return toToken(this.tokens[this.tokenIndex]);
+    }
+
     private nextErrorToken(): Token {
         return toToken(this.errors[this.errorIndex++]);
+    }
+
+    private peekNextErrorToken(): Token {
+        return toToken(this.errors[this.errorIndex]);
     }
 
     private nextMinimumToken(): Token {
@@ -50,6 +56,17 @@ export class LexerIterator {
         return errorToken;
     }
 
+    private peekNextMinimumToken(): Token {
+        const correctToken = toToken(this.tokens[this.tokenIndex]);
+        const errorToken = toToken(this.errors[this.errorIndex]);
+
+        if (correctToken.offset < errorToken.offset) {
+            return correctToken;
+        }
+
+        return errorToken;
+    }
+
     public next(): Token {
         let nextToken: Token;
 
@@ -60,28 +77,16 @@ export class LexerIterator {
         return this.currentToken = nextToken;
     }
 
+    public peekForward(): Token {
+        if (!this.hasCorrectToken()) return this.peekNextErrorToken();
+        else if (!this.hasErrorToken()) return this.peekNextCorrectToken();
+        return this.peekNextMinimumToken();
+    }
+
     public current = (): Token | null => this.currentToken;
 
     public hasNext(): boolean {
         return this.hasCorrectToken() || this.hasErrorToken();
-    }
-
-    public takeSnapshot() {
-        this.tokenIndexSnapshots.push(this.tokenIndex);
-        this.errorIndexSnapshots.push(this.errorIndex);
-
-    }
-
-    public backToLastSnapshot() {
-        this.tokenIndex = this.tokenIndexSnapshots.pop() ?? 0;
-        this.errorIndex = this.errorIndexSnapshots.pop() ?? 0;
-    }
-
-    public previous(): Token {
-        //this.errorIndex--;
-        this.tokenIndex--;
-
-        return this.next();
     }
 }
 

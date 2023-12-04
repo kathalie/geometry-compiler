@@ -12,7 +12,6 @@ import {
     PointNode,
     TaskNode
 } from "./nodes.js";
-import {SemanticError} from "../semantic_analyzer/translator.js";
 import {randomInt} from "crypto";
 import {keywords} from "../lexer/constants/reserved-words.js";
 
@@ -39,13 +38,12 @@ export class Parser {
         return this.identifiers;
     }
 
-    private tryNextToken = (
+
+    private tryNextToken (
         expectedTokenType?: TokenType,
         expectedValue?: string,
-        //errorBuilder: ((offset: number) => SyntaxError) | null = null,
-    ): Token => {
+    ): Token {
         const syntaxError = (offset: number): SyntaxError =>
-            //errorBuilder?.(offset) ??
             new SyntaxError(`${expectedTokenType?.name ?? ''} <${expectedValue ?? ''}>`, offset, this.tokenIterator.current()?.value ?? '');
 
         if (!this.tokenIterator.hasNext())
@@ -73,7 +71,7 @@ export class Parser {
     private parseCommand(): CommandNode {
         const operator = this.parseOperator();
         const object = this.parseObject();
-        const separator = this.tryNextToken(Separator, '.');
+        this.tryNextToken(Separator, '.');
 
         return new CommandNode(operator, object);
     }
@@ -84,15 +82,102 @@ export class Parser {
         return operator.value;
     }
 
-    private parseAnyNumber(): number {
-        const nextToken = this.tryNextToken();
+    private parseObject(): GraphicalObjectNode {
+        const keyWord = this.tokenIterator.peekForward();
 
-        if (nextToken.tokenType == FractionalLiteral)
-            return parseFloat(nextToken.value);
-        else if (nextToken.tokenType == IntegerLiteral)
-            return parseInt(nextToken.value);
+        switch (keyWord.value) {
+            case keywords.point:
+                return this.parsePoint();
+            case keywords.line: {
+                return this.parseLine();
+            }
+            case keywords.lineSegment: {
+                return this.parseLineSegment();
+            }
+            case keywords.perpendicular:
+                return this.parsePerpendicular();
+            default:
+                throw new SyntaxError('назва графічного обʼєкта (ТОЧКА, ПРЯМА тощо)', keyWord.offset, this.tokenIterator.current()?.value ?? '');
 
-        throw new SyntaxError('numeric', nextToken.offset, this.tokenIterator.current()?.value ?? '');
+        }
+    }
+
+    private parseLine(): LineNode {
+        this.tryNextToken(KeyWord, keywords.line);
+
+        const {p1, p2} = this.parseTwoPoints();
+
+        return new LineNode(p1, p2);
+    }
+
+    private parseLineSegment(): LineSegmentNode {
+        this.tryNextToken(KeyWord, keywords.lineSegment);
+
+        const {p1, p2} = this.parseTwoPoints();
+
+        return new LineSegmentNode(p1, p2);
+    }
+
+    private parseTwoPoints(): {p1: PointNode, p2: PointNode} {
+        const p1 = this.parsePoint();
+        const p2 = this.parsePoint();
+
+        return {p1, p2};
+    }
+
+    private parsePerpendicular(): PerpendicularNode {
+        this.tryNextToken(KeyWord, keywords.perpendicular);
+
+        const pointFrom = this.parsePoint();
+        const keyWord = this.tokenIterator.peekForward();
+
+        switch (keyWord.value) {
+            case keywords.line:
+                return new PerpendicularNode(this.parseLine(), pointFrom);
+            case keywords.lineSegment:
+                return new PerpendicularNode(this.parseLineSegment(), pointFrom);
+            default:
+                throw new SyntaxError('ПРЯМА або ВІДРІЗОК', this.tokenIterator.next()?.offset, this.tokenIterator.current()?.value ?? '');
+        }
+    }
+
+    private parsePoint(): PointNode {
+        if (this.tokenIterator.peekForward().value == keywords.point)
+            return this.parsePointWithKeyword();
+
+        return this.parsePointWithoutKeyword();
+    }
+
+    private parsePointWithKeyword(): PointNode {
+        this.tryNextToken(KeyWord, keywords.point);
+
+        return this.parsePointWithoutKeyword();
+    }
+
+    private parsePointWithoutKeyword(): PointNode {
+        const pointId = this.parsePointId();
+
+        let pointCoords: CoordsNode;
+
+        if (this.tokenIterator.peekForward()?.value == '(')
+            pointCoords = this.parseCoords();
+        else if (this.identifiers.has(pointId)) {
+            const {x, y} = this.identifiers.get(pointId)!;
+
+            pointCoords = new CoordsNode(x, y);
+        } else {
+            pointCoords = this.randomAverageCoords();
+        }
+
+        this.identifiers.set(pointId, {x: pointCoords.x, y: pointCoords.y})
+
+        return new PointNode(pointId, pointCoords);
+    }
+
+    private parsePointId(): string {
+        const pointId = this.tryNextToken(Identifier);
+
+        return pointId.value;
     }
 
     private parseCoords(): CoordsNode {
@@ -105,12 +190,6 @@ export class Parser {
         this.tryNextToken(Separator, ')');
 
         return new CoordsNode(x, y);
-    }
-
-    private parsePointId(): string {
-        const pointId = this.tryNextToken(Identifier);
-
-        return pointId.value;
     }
 
     private randomAverageCoords(): CoordsNode {
@@ -127,147 +206,14 @@ export class Parser {
         return new CoordsNode(averageX + randomInt(1, 5), averageY + randomInt(1, 5));
     }
 
-    private parsePoint(): PointNode {
-        const pointId = this.parsePointId();
+    private parseAnyNumber(): number {
+        const nextToken = this.tryNextToken();
 
-        let pointCoords: CoordsNode;
+        if (nextToken.tokenType == FractionalLiteral)
+            return parseFloat(nextToken.value);
+        else if (nextToken.tokenType == IntegerLiteral)
+            return parseInt(nextToken.value);
 
-        if (this.identifiers.has(pointId)) {
-            const existingCoords= this.identifiers.get(pointId)!;
-
-            pointCoords = new CoordsNode(existingCoords.x, existingCoords.y);
-        }
-        else {
-            pointCoords = this.randomAverageCoords();
-        }
-
-        this.identifiers.set(pointId, {x: pointCoords.x, y: pointCoords.y})
-
-        return new PointNode(pointId, pointCoords);
-    }
-
-    private parsePointWithCoords(): PointNode {
-        const pointId = this.parsePointId();
-
-        let pointCoords: CoordsNode;
-
-        try {
-            this.tokenIterator.takeSnapshot();
-            pointCoords = this.parseCoords();
-        } catch(e) {
-            if (this.identifiers.has(pointId)) {
-                const existingCoords= this.identifiers.get(pointId)!;
-
-                return new PointNode(pointId, new CoordsNode(existingCoords.x, existingCoords.y));
-            }
-
-            this.tokenIterator.backToLastSnapshot();
-
-            pointCoords = this.randomAverageCoords();
-        }
-
-        if (this.identifiers.has(pointId))
-            throw new SemanticError(`Точка ${pointId} вже має задані координати.`);
-
-        this.identifiers.set(pointId, {x: pointCoords.x, y: pointCoords.y})
-
-        return new PointNode(pointId, pointCoords);
-    }
-
-    private parsePointWithPossiblyKeyword(): PointNode {
-        this.parseOptional(() =>
-            this.tryNextToken(KeyWord, keywords.point)
-        );
-
-        return this.parsePoint();
-    }
-
-    private parseOptional<T>(func: () => T) {
-        this.tokenIterator.takeSnapshot();
-        try {
-            return func();
-        } catch (e) {
-            this.tokenIterator.backToLastSnapshot();
-        }
-    }
-
-    private parsePointsForStraightLine(): { p1: PointNode, p2: PointNode} {
-        //const point1 = this.parsePointWithPossiblyKeyword();
-        this.tokenIterator.takeSnapshot();
-        try {
-            const keyword = this.tryNextToken(KeyWord, keywords.point);
-        } catch(e) {
-            this.tokenIterator.backToLastSnapshot();
-            //this.tokenIterator.previous();
-        }
-
-        const point1 = this.parsePoint();
-        //
-        // const coma = this.parseOptional(() =>
-        //     this.tryNextToken(Separator, ',')
-        // );
-
-        //const point2 = this.parsePointWithPossiblyKeyword();
-        const point2 = this.parsePoint();
-
-        if (point1.coords.x == point2.coords.x && point1.coords.y == point2.coords.y)
-            throw new SemanticError(`Точки ${point1.id}, ${point2.id} мають однакові координати (${point1.coords.x}, ${point1.coords.y}) і через них неможливо провести пряму.`);
-
-        return {p1: point1, p2: point2};
-    }
-
-    private parseLine(): LineNode {
-        const {p1, p2} = this.parsePointsForStraightLine();
-
-        return new LineNode(p1, p2);
-    }
-
-    private parseLineSegment(): LineSegmentNode {
-        const {p1, p2} = this.parsePointsForStraightLine();
-
-        return new LineSegmentNode(p1, p2);
-    }
-
-    private parsePerpendicular(): PerpendicularNode {
-        const pointFrom = this.parsePointWithPossiblyKeyword();
-
-        const node = this.tryNextToken(KeyWord);
-
-        switch (node.value) {
-            case keywords.line: {
-                const id1 = this.parsePointId();
-                const coords1 = this.identifiers.has(id1) ? this.identifiers.get(id1)! : this.randomAverageCoords();
-                const point1 = new PointNode(id1, new CoordsNode(coords1.x, coords1.y));
-
-                const id2 = this.parsePointId();
-                const coords2 = this.identifiers.has(id2) ? this.identifiers.get(id2)! : this.randomAverageCoords();
-                const point2 = new PointNode(id2, new CoordsNode(coords2.x, coords2.y));
-                return new PerpendicularNode(new LineNode(point1, point2), pointFrom);
-            }
-            case keywords.lineSegment:
-                return new PerpendicularNode(this.parseLineSegment(), pointFrom);
-            default:
-                throw new SyntaxError('ПРЯМА або ВІДРІЗОК', this.tokenIterator.next()?.offset, this.tokenIterator.current()?.value ?? '');
-        }
-    }
-
-    private parseObject(): GraphicalObjectNode {
-        const keyWord = this.tryNextToken(KeyWord);
-
-        switch (keyWord.value) {
-            case keywords.point:
-                return this.parsePointWithCoords();
-            case keywords.line: {
-                return this.parseLine();
-            }
-            case keywords.lineSegment: {
-                return this.parseLineSegment();
-            }
-            case keywords.perpendicular:
-                return this.parsePerpendicular();
-            default:
-                throw new SyntaxError('назва графічного обʼєкта (ТОЧКА, ПРЯМА тощо)', keyWord.offset, this.tokenIterator.current()?.value ?? '');
-
-        }
+        throw new SyntaxError('numeric', nextToken.offset, this.tokenIterator.current()?.value ?? '');
     }
 }
