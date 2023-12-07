@@ -1,21 +1,23 @@
 export type StemmingInfo = Record<string, string[]>;
 
 export const keywords = {
-    point: 'ТОЧ',
-    line: 'ПРЯМ',
-    lineSegment: 'ВІДРІЗ',
-    perpendicular: 'ПЕРПЕНДИКУЛЯ',
+    point: 'точ',
+    line: 'прям',
+    lineSegment: 'відріз',
+    perpendicular: 'перпендикуля',
+    triangle: 'трикутни',
 }
 
 export const endingsKeywords: StemmingInfo = {
-    [keywords.point]: ['КА', 'КУ', 'КИ', 'ЦІ', 'КАМ'],
-    [keywords.line]: ['А', 'У', 'І', 'ІЙ', 'ИМ', 'ОЇ'],
-    [keywords.lineSegment]: ['ОК', 'КИ', 'КУ', 'КАМ'],
-    [keywords.perpendicular]: ['Р', 'РИ', 'РОМ', 'РУ'],
+    [keywords.point]: ['ка', 'ку', 'ки', 'ці', 'кам'],
+    [keywords.line]: ['а', 'у', 'і', 'ій', 'им', 'ої'],
+    [keywords.lineSegment]: ['ок', 'ки', 'ку', 'кам'],
+    [keywords.perpendicular]: ['р', 'ри', 'ром', 'ру'],
+    [keywords.triangle]: ['к', 'ки', 'ком', 'ку'],
 };
 
 export const endingsOperators: StemmingInfo = {
-    'ПОБУД': ['УВАТИ', 'УЙ', 'УЙТЕ'],
-    'ПРОВ': ['ЕСТИ', 'ЕДІТЬ', 'ЕДИ'],
-    'ПОЗНА': ['ЧИТИ', 'ЧТЕ', 'Ч'],
+    'побуд': ['увати', 'уй', 'уйте'],
+    'пров': ['ести', 'едіть', 'еди'],
+    'позна': ['чити', 'чте', 'ч'],
 };

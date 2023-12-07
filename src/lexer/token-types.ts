@@ -45,6 +45,8 @@ export const WhiteSpace = createToken({
 
 function matchWithStemming(stemmingInfo: StemmingInfo): CustomPatternMatcherFunc {
     return (text: string, startOffset: number) => {
+        text = text.toLowerCase();
+
         const basesAndEndings = [] as string[];
 
         for (const [base, endings] of Object.entries(stemmingInfo)) {
@@ -67,7 +69,6 @@ function matchWithStemming(stemmingInfo: StemmingInfo): CustomPatternMatcherFunc
 
 export const KeyWord = createToken({
     name: "Key Word",
-    //pattern: RegExp(keyWords.map(kw => `${kw}[А-ЯІЇЄ]*`).join('|')),
     pattern: matchWithStemming(endingsKeywords) as CustomPatternMatcherFunc,
     line_breaks: false,
 });

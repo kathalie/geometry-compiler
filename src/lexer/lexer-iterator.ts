@@ -85,6 +85,10 @@ export class LexerIterator {
 
     public current = (): Token | null => this.currentToken;
 
+    public currentOffset = (): number => this.current()?.offset ?? 0;
+
+    public currentValue = (): string => this.current()?.value ?? '';
+
     public hasNext(): boolean {
         return this.hasCorrectToken() || this.hasErrorToken();
     }

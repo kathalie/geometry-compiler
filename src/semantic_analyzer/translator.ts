@@ -131,31 +131,57 @@ export class Translator {
     }
 
     private translatePerpendicular(perpendicular: PerpendicularNode): GraphicalCommand[] {
-        const p = perpendicular.from;
+        const commands = [];
+
+        const pFrom = perpendicular.from;
         const p1 = perpendicular.to.p1;
         const p2 = perpendicular.to.p2;
 
-        const k = (p1.coords.y - p2.coords.y) / (p1.coords.x - p2.coords.x);
-        const b = p1.coords.y - k * p1.coords.x;
+        if (!this.drawnPoints.includes(p1.id))
+            commands.push(drawPointCommand(p1.id, p1.coords));
+        if (!this.drawnPoints.includes(p2.id))
+            commands.push(drawPointCommand(p2.id, p2.coords));
+        if (!this.drawnPoints.includes(p1.id) || !this.drawnPoints.includes(p2.id)) {
+            if (perpendicular.to instanceof LineNode)
+                commands.push(drawLineCommand(p1.id, p2.id));
+            else
+                commands.push(drawLineSegmentCommand(p1.id, p2.id));
+        }
 
-        if (p.coords.x * k + b == p.coords.y)
-            throw new SemanticError('Точка, з якої має бути проведено перпендикуляр, не має лежати на прямій!');
+        const intersectionPointId = `${pFrom.id}'`;
+        const {x, y} = this.intersectionWithPerpendicular(p1, p2, pFrom)
 
-        const kPerpendicular = - 1 / k;
-        const bPerpendicular = p.coords.y - kPerpendicular * p.coords.x;
+        if (!this.drawnPoints.includes(pFrom.id))
+            commands.push(drawPointCommand(pFrom.id, pFrom.coords));
 
-        const x = (b - bPerpendicular) / (kPerpendicular - k);
-        const y = k * x + b;
-        const intersectionPointId = `${p.id}'`
-
-        const commands = [];
-
-        if (!this.drawnPoints.includes(p.id))
-            commands.push(drawPointCommand(p.id, p.coords));
-
-        commands.push(drawPointCommand(intersectionPointId, {x, y}));
-        commands.push(drawLineCommand(p.id, intersectionPointId));
+        if (p1.coords.x === x && p1.coords.y === y)
+            commands.push(drawLineCommand(pFrom.id, p1.id));
+        else if (p2.coords.x === x && p2.coords.y === y)
+            commands.push(drawLineCommand(pFrom.id, p2.id));
+        else {
+            commands.push(drawPointCommand(intersectionPointId, {x, y}));
+            commands.push(drawLineCommand(pFrom.id, intersectionPointId));
+        }
 
         return commands;
+    }
+
+    private intersectionWithPerpendicular(p1: PointNode, p2: PointNode, pFrom: PointNode): {x: number, y: number} {
+        const perpendicularToHorizontal = p1.coords.y === p2.coords.y;
+        const perpendicularToVertical = p1.coords.x === p2.coords.x;
+
+        const k = perpendicularToHorizontal ? 0 : (p1.coords.y - p2.coords.y) / (p1.coords.x - p2.coords.x);
+        const b = perpendicularToVertical ? p1.coords.y: p1.coords.y - k * p1.coords.x;
+
+        if (pFrom.coords.x * k + b === pFrom.coords.y)
+            throw new SemanticError('Точка, з якої має бути проведено перпендикуляр, не має лежати на прямій!');
+
+        const kPerpendicular = perpendicularToVertical ? 0 : - 1 / k;
+        const bPerpendicular = perpendicularToHorizontal ? pFrom.coords.y : pFrom.coords.y - kPerpendicular * pFrom.coords.x;
+
+        const x = perpendicularToHorizontal ? pFrom.coords.x : (b - bPerpendicular) / (kPerpendicular - k);
+        const y = perpendicularToVertical ? pFrom.coords.y : k * x + b;
+
+        return {x, y};
     }
 }

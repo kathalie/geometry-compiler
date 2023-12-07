@@ -15,8 +15,6 @@ import {
 import {randomInt} from "crypto";
 import {keywords} from "../lexer/constants/reserved-words.js";
 
-
-
 export class SyntaxError extends Error {
     constructor(expectedToken: string = 'будь-який', offset: number, currentTokenValue: string ) {
         super(`${offset}: ...${currentTokenValue} -> Очікується токен <${expectedToken}>.`);
@@ -29,22 +27,23 @@ export type IdentifiersTable = Map<string, CoordinateObject >;
 export class Parser {
     private identifiers: IdentifiersTable = new Map();
 
+    private readonly buildSyntaxError = (msg: string) =>
+        new SyntaxError(msg, this.tokenIterator.currentOffset(), this.tokenIterator.currentValue());
+
     constructor(private tokenIterator: LexerIterator) {
-        if (!this.tokenIterator.hasNext())
-            throw new SyntaxError(`початковий`, 0, this.tokenIterator.current()?.value ?? '');
+        if (!this.tokenIterator.hasNext()) throw this.buildSyntaxError(`початковий`);
     }
 
     public get identifiersTable(): IdentifiersTable {
         return this.identifiers;
     }
 
-
     private tryNextToken (
         expectedTokenType?: TokenType,
         expectedValue?: string,
     ): Token {
         const syntaxError = (offset: number): SyntaxError =>
-            new SyntaxError(`${expectedTokenType?.name ?? ''} <${expectedValue ?? ''}>`, offset, this.tokenIterator.current()?.value ?? '');
+            new SyntaxError(`${expectedTokenType?.name ?? ''} <${expectedValue ?? ''}>`, offset, this.tokenIterator.currentValue());
 
         if (!this.tokenIterator.hasNext())
             throw syntaxError(this.tokenIterator.current()?.offset ?? 0);
@@ -83,6 +82,11 @@ export class Parser {
     }
 
     private parseObject(): GraphicalObjectNode {
+        const errorMsg = 'назва графічного обʼєкта (ТОЧКА, ПРЯМА тощо)';
+
+        if (!this.tokenIterator.hasNext())
+            throw this.buildSyntaxError(errorMsg);
+
         const keyWord = this.tokenIterator.peekForward();
 
         switch (keyWord.value) {
@@ -97,8 +101,7 @@ export class Parser {
             case keywords.perpendicular:
                 return this.parsePerpendicular();
             default:
-                throw new SyntaxError('назва графічного обʼєкта (ТОЧКА, ПРЯМА тощо)', keyWord.offset, this.tokenIterator.current()?.value ?? '');
-
+                throw this.buildSyntaxError(errorMsg);
         }
     }
 
@@ -128,7 +131,12 @@ export class Parser {
     private parsePerpendicular(): PerpendicularNode {
         this.tryNextToken(KeyWord, keywords.perpendicular);
 
+        const errorMsg = 'ПРЯМА або ВІДРІЗОК';
         const pointFrom = this.parsePoint();
+
+        if (!this.tokenIterator.hasNext())
+            throw this.buildSyntaxError(errorMsg);
+
         const keyWord = this.tokenIterator.peekForward();
 
         switch (keyWord.value) {
@@ -137,11 +145,14 @@ export class Parser {
             case keywords.lineSegment:
                 return new PerpendicularNode(this.parseLineSegment(), pointFrom);
             default:
-                throw new SyntaxError('ПРЯМА або ВІДРІЗОК', this.tokenIterator.next()?.offset, this.tokenIterator.current()?.value ?? '');
+                throw this.buildSyntaxError(errorMsg);
         }
     }
 
     private parsePoint(): PointNode {
+        if (!this.tokenIterator.hasNext())
+            throw this.buildSyntaxError('визначення точки');
+
         if (this.tokenIterator.peekForward().value == keywords.point)
             return this.parsePointWithKeyword();
 
@@ -159,7 +170,7 @@ export class Parser {
 
         let pointCoords: CoordsNode;
 
-        if (this.tokenIterator.peekForward()?.value == '(')
+        if (this.tokenIterator.hasNext() && this.tokenIterator.peekForward().value == '(')
             pointCoords = this.parseCoords();
         else if (this.identifiers.has(pointId)) {
             const {x, y} = this.identifiers.get(pointId)!;
@@ -214,6 +225,6 @@ export class Parser {
         else if (nextToken.tokenType == IntegerLiteral)
             return parseInt(nextToken.value);
 
-        throw new SyntaxError('numeric', nextToken.offset, this.tokenIterator.current()?.value ?? '');
+        throw this.buildSyntaxError('будь-яке число');
     }
 }
