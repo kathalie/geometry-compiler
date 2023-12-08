@@ -5,7 +5,7 @@ import {
     LineNode,
     LineSegmentNode, PerpendicularNode,
     PointNode,
-    TaskNode
+    TaskNode, TriangleNode
 } from "../syntax_analyzer/nodes.js";
 
 export class SemanticError extends Error {
@@ -64,24 +64,28 @@ export class Translator {
     }
 
     private translateGraphicalObject(objectNode: GraphicalObjectNode): GraphicalCommand[] {
-        if (objectNode instanceof PointNode)
-            return this.translatePoint(objectNode);
-
         if (objectNode instanceof LineNode)
             return this.translateLine(objectNode);
 
         if (objectNode instanceof LineSegmentNode)
             return this.translateLineSegment(objectNode);
 
-        // add perpendicular
-        return this.translatePerpendicular(objectNode);
+        if (objectNode instanceof PerpendicularNode)
+            return this.translatePerpendicular(objectNode);
+
+        if (objectNode instanceof TriangleNode)
+            return this.translateTriangle(objectNode);
+
+        return this.translatePoint(objectNode);
     }
 
     private translatePoint(pointNode: PointNode): GraphicalCommand[] {
+        if (this.drawnPoints.includes(pointNode.id)) return [];
+
         const pointId = pointNode.id;
 
         if (!this.identifiers.has(pointId))
-            throw new SemanticError(`Для точки ${pointNode.id} на знайдено заданих координат.`);
+            throw new SemanticError(`Для точки ${pointNode.id} не знайдено заданих координат.`);
 
         const coords = this.identifiers.get(pointId)!;
 
@@ -94,94 +98,62 @@ export class Translator {
         const p1 = lineNode.p1;
         const p2 = lineNode.p2;
 
-        for (const p of [p1, p2])
-            if (!this.identifiers.has(p.id))
-                throw new SemanticError(`Координати для точки ${p.id} не було задано.`);
-
-        const commands =  [];
-
-        for (const p of [p1, p2]) {
-            if (!this.drawnPoints.includes(p.id))
-                commands.push(drawPointCommand(p.id, p.coords));
-        }
-
-        commands.push(drawLineCommand(p1.id, p2.id));
-
-        return commands;
+       return  [
+            ...this.translatePoint(p1),
+            ...this.translatePoint(p2),
+            drawLineCommand(p1.id, p2.id)
+        ];
     }
 
     private translateLineSegment(segmentNode: LineSegmentNode): GraphicalCommand[] {
         const p1 = segmentNode.p1;
         const p2 = segmentNode.p2;
 
-        for (const p of [p1, p2])
-            if (!this.identifiers.has(p.id))
-                throw new SemanticError(`Координати для точки ${p.id} не було задано.`);
-
-        const commands =  [];
-
-        for (const p of [p1, p2]) {
-            if (!this.drawnPoints.includes(p.id))
-                commands.push(drawPointCommand(p.id, p.coords));
-        }
-
-        commands.push(drawLineSegmentCommand(p1.id, p2.id));
-
-        return commands;
+       return  [
+            ...this.translatePoint(p1),
+            ...this.translatePoint(p2),
+            drawLineSegmentCommand(p1.id, p2.id)
+        ];
     }
 
     private translatePerpendicular(perpendicular: PerpendicularNode): GraphicalCommand[] {
-        const commands = [];
-
         const pFrom = perpendicular.from;
         const p1 = perpendicular.to.p1;
         const p2 = perpendicular.to.p2;
 
-        if (!this.drawnPoints.includes(p1.id))
-            commands.push(drawPointCommand(p1.id, p1.coords));
-        if (!this.drawnPoints.includes(p2.id))
-            commands.push(drawPointCommand(p2.id, p2.coords));
-        if (!this.drawnPoints.includes(p1.id) || !this.drawnPoints.includes(p2.id)) {
-            if (perpendicular.to instanceof LineNode)
-                commands.push(drawLineCommand(p1.id, p2.id));
-            else
-                commands.push(drawLineSegmentCommand(p1.id, p2.id));
-        }
+        const commands = [
+            ...this.translatePoint(pFrom),
+            ...(perpendicular.to instanceof LineNode ?
+                this.translateLine(perpendicular.to):
+                this.translateLineSegment(perpendicular.to))
+        ];
 
-        const intersectionPointId = `${pFrom.id}'`;
-        const {x, y} = this.intersectionWithPerpendicular(p1, p2, pFrom)
+        const intersection = perpendicular.to.intersectionWithPerpendicular(pFrom);
 
-        if (!this.drawnPoints.includes(pFrom.id))
-            commands.push(drawPointCommand(pFrom.id, pFrom.coords));
-
-        if (p1.coords.x === x && p1.coords.y === y)
+        if (p1.x() === intersection.x() && p1.y() === intersection.y())
             commands.push(drawLineCommand(pFrom.id, p1.id));
-        else if (p2.coords.x === x && p2.coords.y === y)
+        else if (p2.x() === intersection.x() && p2.y() === intersection.y())
             commands.push(drawLineCommand(pFrom.id, p2.id));
         else {
-            commands.push(drawPointCommand(intersectionPointId, {x, y}));
-            commands.push(drawLineCommand(pFrom.id, intersectionPointId));
+            commands.push(drawPointCommand(intersection.id, intersection.coords));
+            commands.push(drawLineCommand(pFrom.id, intersection.id));
         }
 
         return commands;
     }
 
-    private intersectionWithPerpendicular(p1: PointNode, p2: PointNode, pFrom: PointNode): {x: number, y: number} {
-        const perpendicularToHorizontal = p1.coords.y === p2.coords.y;
-        const perpendicularToVertical = p1.coords.x === p2.coords.x;
+    private translateTriangle(triangle: TriangleNode): GraphicalCommand[] {
+        const ab = triangle.s1.length();
+        const bc = triangle.s2.length();
+        const ac = triangle.s3.length();
 
-        const k = perpendicularToHorizontal ? 0 : (p1.coords.y - p2.coords.y) / (p1.coords.x - p2.coords.x);
-        const b = perpendicularToVertical ? p1.coords.y: p1.coords.y - k * p1.coords.x;
+        if (ab + bc <= ac || ab + ac <= bc || bc + ac <= ab)
+            throw new SemanticError('Сторони трикутника не задовільняють нерівність трикутників2б.');
 
-        if (pFrom.coords.x * k + b === pFrom.coords.y)
-            throw new SemanticError('Точка, з якої має бути проведено перпендикуляр, не має лежати на прямій!');
-
-        const kPerpendicular = perpendicularToVertical ? 0 : - 1 / k;
-        const bPerpendicular = perpendicularToHorizontal ? pFrom.coords.y : pFrom.coords.y - kPerpendicular * pFrom.coords.x;
-
-        const x = perpendicularToHorizontal ? pFrom.coords.x : (b - bPerpendicular) / (kPerpendicular - k);
-        const y = perpendicularToVertical ? pFrom.coords.y : k * x + b;
-
-        return {x, y};
+        return [
+            ...this.translateLineSegment(triangle.s1),
+            ...this.translateLineSegment(triangle.s2),
+            ...this.translateLineSegment(triangle.s3),
+        ];
     }
 }

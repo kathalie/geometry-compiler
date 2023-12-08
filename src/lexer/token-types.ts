@@ -75,7 +75,7 @@ export const KeyWord = createToken({
 
 export const Separator = createToken({
     name: "Separator",
-    pattern: /[;,().]/
+    pattern: /[;().,]/
 });
 
 export const Operator = createToken({

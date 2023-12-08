@@ -6,13 +6,15 @@
 
 <operator> ::= "побуд" | "пров" | "позна"
 
-<object> ::= <point_with_keyword> | <line> | <line_segment> | <perpendicular>
+<object> ::= <point_with_keyword> | <line> | <line_segment> | <perpendicular> | <triangle>
 
-<line> ::= <line_keyword> <two_points>
-<line_segment> ::= <line_segment_keyword> <two_points>
-<two_points> ::= <point> <point>
+<linear_data> ::= <point> <point>
+
+<line> ::= <line_keyword> <linear_data>
+<line_segment> ::= <line_segment_keyword> <linear_data>
 <perpendicular> ::= <perpendicular_keyword> <point> <perpendicular_to>
 <perpendicular_to> ::= <line> | <line_segment>
+<triangle> ::= <triangle_keyword> <point> <point> <point>
 
 <point> ::= <point_with_keyword> | <point_without_keyword>
 <point_with_keyword> ::= <point_keyword> <point_without_keyword>
@@ -21,13 +23,12 @@
 
 <coords> ::= '(' <any_number> ';' <any_number> ')'
 
-
 <point_id> ::= [A-Z]
 <point_keyword> ::= "точ"
 <line_keyword> ::= "прям"
 <line_segment_keyword> ::= "відріз"
 <perpendicular_keyword> ::= "перпендикуля"
-<perpendicular_keyword> ::= "трикутни"
+<triangle_keyword> ::= "трикутни"
 ```
 
 ### Обʼєкти, які генеруються з вхідної стрічки у відповідній послідовності для подальшої відмальовки на клієнті.
@@ -60,3 +61,5 @@
 `Провести пряму через дві точки A B. Побудувати перпендикуляр з точки C до прямої AB.`
 
 `Побудувати відрізок AB. Провести пряму CD. Побудувати перпендикуляр з точки F до прямої CD. Побудувати перпендикуляр з точки K до відрізку AB.`
+
+`Побудувати трикутник ABC.`

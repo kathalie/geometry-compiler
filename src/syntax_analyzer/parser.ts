@@ -1,7 +1,14 @@
 import {TokenType} from "chevrotain";
 import {LexerIterator} from "../lexer/lexer-iterator.js";
 import {Token} from "../lexer/token.js";
-import {FractionalLiteral, Identifier, IntegerLiteral, KeyWord, Operator, Separator} from "../lexer/token-types.js";
+import {
+    FractionalLiteral,
+    Identifier,
+    IntegerLiteral,
+    KeyWord,
+    Operator,
+    Separator
+} from "../lexer/token-types.js";
 import {
     CommandNode,
     CoordsNode,
@@ -10,7 +17,7 @@ import {
     LineSegmentNode,
     PerpendicularNode,
     PointNode,
-    TaskNode
+    TaskNode, TriangleNode
 } from "./nodes.js";
 import {randomInt} from "crypto";
 import {keywords} from "../lexer/constants/reserved-words.js";
@@ -58,6 +65,12 @@ export class Parser {
         return nextToken;
     };
 
+    private nextIs(tokenType: TokenType, regex: RegExp): boolean {
+        return this.tokenIterator.hasNext() &&
+            this.tokenIterator.peekForward().tokenType === tokenType &&
+            regex.test(this.tokenIterator.peekForward().value);
+    }
+
     public parseTask(): TaskNode {
         const task = new TaskNode();
 
@@ -92,14 +105,14 @@ export class Parser {
         switch (keyWord.value) {
             case keywords.point:
                 return this.parsePoint();
-            case keywords.line: {
+            case keywords.line:
                 return this.parseLine();
-            }
-            case keywords.lineSegment: {
+            case keywords.lineSegment:
                 return this.parseLineSegment();
-            }
             case keywords.perpendicular:
                 return this.parsePerpendicular();
+            case keywords.triangle:
+                return this.parseTriangle();
             default:
                 throw this.buildSyntaxError(errorMsg);
         }
@@ -108,7 +121,8 @@ export class Parser {
     private parseLine(): LineNode {
         this.tryNextToken(KeyWord, keywords.line);
 
-        const {p1, p2} = this.parseTwoPoints();
+        const p1 = this.parsePoint();
+        const p2 = this.parsePoint();
 
         return new LineNode(p1, p2);
     }
@@ -116,16 +130,10 @@ export class Parser {
     private parseLineSegment(): LineSegmentNode {
         this.tryNextToken(KeyWord, keywords.lineSegment);
 
-        const {p1, p2} = this.parseTwoPoints();
-
-        return new LineSegmentNode(p1, p2);
-    }
-
-    private parseTwoPoints(): {p1: PointNode, p2: PointNode} {
         const p1 = this.parsePoint();
         const p2 = this.parsePoint();
 
-        return {p1, p2};
+        return new LineSegmentNode(p1, p2);
     }
 
     private parsePerpendicular(): PerpendicularNode {
@@ -147,6 +155,16 @@ export class Parser {
             default:
                 throw this.buildSyntaxError(errorMsg);
         }
+    }
+
+    private parseTriangle(): TriangleNode {
+        this.tryNextToken(KeyWord, keywords.triangle);
+
+        const p1 = this.parsePoint();
+        const p2 = this.parsePoint();
+        const p3 = this.parsePoint();
+
+        return new TriangleNode(p1, p2, p3);
     }
 
     private parsePoint(): PointNode {
