@@ -16,12 +16,16 @@
     "http-errors": "~1.6.3",
     "jsxgraph": "^1.6.2",
     "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "sequelize": "^6.37.5",
+    "sequelize-typescript": "^2.1.6",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@chevrotain/types": "^11.0.3",
     "@types/express": "^4.17.21",
     "@types/node": "^20.9.2",
+    "@types/sequelize": "^4.28.20",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "chevrotain": "^11.0.3",
