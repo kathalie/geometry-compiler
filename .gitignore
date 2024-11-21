@@ -8,3 +8,9 @@ dist
 **/build
 
 .idea
+
+.DS_Store
+.editorconfig
+.eslintrc.json
+.gitattributes
+.htaccess
