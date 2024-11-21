@@ -15,7 +15,7 @@ export function addListenerToSaveTemplateButton() {
         const action = createTemplateModal.getAttribute('data-action');
 
         const isUpdate = action == "update"
-        
+
         if (!templateContent) {
             alert('Введіть умову задачі!');
             return;

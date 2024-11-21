@@ -18,49 +18,57 @@ export async function updateTemplateList() {
         // Populate the list with fetched templates
         templates.forEach((template) => {
             const listItem = document.createElement('li');
-            listItem.id = "templateLi"
-            listItem.className = 'list-group-item d-flex flex-column align-items-start';
+            listItem.id = "templateLi";
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center'; // Flex layout for horizontal items
             listItem.dataset.templateId = template.id.toString(); // Store the template ID in the list item
 
             // Create a span for the template content
             const contentSpan = document.createElement('span');
             contentSpan.textContent = template.content;
 
-            // Create a container for the buttons (to organize them in a row)
+            // Create a container for the buttons (aligned horizontally)
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'd-flex justify-content-start w-100 mt-2'; // This ensures buttons are in a row
+            buttonContainer.className = 'd-flex'; // Make buttons appear in a horizontal row
 
-            // Create an update button
+            // Create an update button with an icon
             const updateButton = document.createElement('button');
-            updateButton.className = 'btn btn-primary btn-sm me-2';
-            updateButton.textContent = 'Оновити';
+            updateButton.className = 'btn btn-secondary btn-sm me-2'; // Use similar style for all buttons
             updateButton.setAttribute('data-bs-toggle', 'modal');
             updateButton.setAttribute('data-bs-target', '#createTemplateModal');
+            updateButton.setAttribute('aria-label', 'Update template');
             updateButton.addEventListener('click', () => {
                 templateContentInput.value = template.content;
                 createTemplateModal.setAttribute("data-template-id", String(template.id));
                 createTemplateModal.setAttribute('data-action', 'update');
             });
 
-            // Create a delete button
+            // Add the edit icon from Bootstrap Icons
+            updateButton.innerHTML = '<i class="bi bi-pencil"></i>';
+
+            // Create a delete button with an icon
             const deleteButton = document.createElement('button');
-            deleteButton.className = 'btn btn-danger btn-sm me-2';
-            deleteButton.textContent = 'Видалити';
+            deleteButton.className = 'btn btn-danger btn-sm me-2'; // Similar style for delete button
+            deleteButton.setAttribute('aria-label', 'Delete template');
             deleteButton.addEventListener('click', async () => {
                 if (confirm('Are you sure you want to delete this template?')) {
                     await handleDelete(template.id);
                 }
             });
 
-            // Create a button to append template content to the text field
+            // Add the trash icon from Bootstrap Icons
+            deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+            // Create a button to append template content to the text field with an icon
             const appendContentButton = document.createElement('button');
-            appendContentButton.className = 'btn btn-info btn-sm';
-            appendContentButton.textContent = 'Додати';
+            appendContentButton.className = 'btn btn-info btn-sm'; // Similar style for append button
+            appendContentButton.setAttribute('aria-label', 'Add content');
             appendContentButton.addEventListener('click', () => {
                 const templateContentInput = document.getElementById('area_with_task') as HTMLTextAreaElement;
                 templateContentInput.value += `${template.content}`;  // Use 'value' to append text
             });
 
+            // Add the plus icon from Bootstrap Icons
+            appendContentButton.innerHTML = '<i class="bi bi-plus-circle"></i>';
 
             // Append buttons to the button container
             buttonContainer.appendChild(updateButton);
@@ -79,6 +87,8 @@ export async function updateTemplateList() {
         alert('Failed to update template list.');
     }
 }
+
+
 
 async function handleDelete(templateId: number) {
     try {

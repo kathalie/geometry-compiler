@@ -7,6 +7,6 @@ export function initCreateTemplateButton() {
     createTemplateBtn.addEventListener('click', () => {
         // Clear form inputs
         templateContentInput.value = '';
-        createTemplateModal.setAttribute('data-action', 'update');
+        createTemplateModal.setAttribute('data-action', 'create');
     });
 }
