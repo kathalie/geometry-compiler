@@ -2,24 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Побудова геометричних фігур</title>
+  <title>Geometry Visualizer</title>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <link href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.js" charset="UTF-8"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
   <script src="npx webpack --config webpack.config.js"></script>
 </head>
 <body>
 
-<form id="form_for_task">
-  <label>
-    Введіть текст задачі:
-    <textarea id="area_with_task"></textarea>
-  </label>
-  <button type="submit" id="submit_task">Відобразити рисунок</button>
-</form>
-<div id="jxgbox" class="jxgbox" style="max-width:800px; aspect-ratio: 1/1;"></div>
-<div id="error_div"></div>
+<!--<form id="form_for_task">-->
+<!--  <label>-->
+<!--    Введіть текст задачі:-->
+<!--    <textarea id="area_with_task"></textarea>-->
+<!--  </label>-->
+<!--  <button type="submit" id="submit_task">Відобразити рисунок</button>-->
+<!--</form>-->
+<!--<div id="jxgbox" class="jxgbox" style="max-width:800px; aspect-ratio: 1/1;"></div>-->
+<!--<div id="error_div"></div>-->
+
+<div class="container-fluid">
+  <div class="row vh-100">
+    <!-- Left Side Menu -->
+    <div class="col-md-3 bg-white shadow-sm p-3">
+      <h5 class="text-center">Шаблони задач</h5>
+      <ul id="templateList" class="list-group mb-3">
+        <!-- Templates will be dynamically inserted here -->
+      </ul>
+      <button id="createTemplateBtn" class="btn btn-success w-100 mb-3">Створити шаблон</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 p-4">
+      <h1 class="mb-4">Geometry Visualizer</h1>
+
+      <!-- Task Input Form -->
+      <form id="form_for_task" class="mb-4">
+        <div class="mb-3">
+          <label for="area_with_task" class="form-label">Умова задачі:</label>
+          <textarea id="area_with_task" class="form-control" rows="4" placeholder="Побудувати..."></textarea>
+        </div>
+        <button type="submit" id="submit_task" class="btn btn-primary">Відобразити рисунок</button>
+      </form>
+
+      <!-- Visualization Area -->
+      <div id="jxgbox" class="jxgbox border rounded shadow-sm" style="max-width: 800px; aspect-ratio: 1/1;"></div>
+      <div id="error_div" class="mt-3 text-danger"></div>
+    </div>
+  </div>
+</div>
 
 <script src="dist/bundle.js"></script>
 
