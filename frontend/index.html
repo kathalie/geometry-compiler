@@ -146,7 +146,17 @@
         <div class="mb-3">
           <textarea id="area_with_task" class="form-control" rows="4" placeholder="Побудувати..."></textarea>
         </div>
-        <button type="submit" id="submit_task" class="btn btn-primary">Відобразити рисунок</button>
+        <div class="row mb-4">
+          <!-- Display Drawing Button -->
+          <div class="col-6">
+            <button type="submit" id="submit_task" class="btn btn-primary w-100">Відобразити рисунок</button>
+          </div>
+
+          <!-- Remove Drawing Button -->
+          <div class="col-6">
+            <button type="button" id="clear_task" class="btn btn-danger w-100">Прибрати рисунок</button>
+          </div>
+        </div>
       </form>
 
       <!-- Visualization Area -->

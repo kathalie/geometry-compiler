@@ -64,7 +64,7 @@ export async function updateTemplateList() {
             appendContentButton.setAttribute('aria-label', 'Add content');
             appendContentButton.addEventListener('click', () => {
                 const templateContentInput = document.getElementById('area_with_task') as HTMLTextAreaElement;
-                templateContentInput.value += `${template.content}`;  // Use 'value' to append text
+                templateContentInput.value += `${template.content} `;  // Use 'value' to append text
             });
 
             // Add the plus icon from Bootstrap Icons

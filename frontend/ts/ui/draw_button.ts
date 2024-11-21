@@ -34,3 +34,15 @@ export function initDrawImageButton() {
             });
     });
 }
+
+export function initRemoveImageButton() {
+    const drawImageButton = document.getElementById('clear_task') as HTMLElement;
+
+    drawImageButton.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        const board = initedBoard();
+
+        board.clearTraces();
+    });
+}
