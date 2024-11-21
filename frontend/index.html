@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Побудова геометричних фігур</title>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <link href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.js" charset="UTF-8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+  <script src="npx webpack --config webpack.config.js"></script>
+</head>
+<body>
+
+<form id="form_for_task">
+  <label>
+    Введіть текст задачі:
+    <textarea id="area_with_task"></textarea>
+  </label>
+  <button type="submit" id="submit_task">Відобразити рисунок</button>
+</form>
+<div id="jxgbox" class="jxgbox" style="max-width:800px; aspect-ratio: 1/1;"></div>
+<div id="error_div"></div>
+
+<script src="dist/bundle.js"></script>
+
+</body>
+</html>
