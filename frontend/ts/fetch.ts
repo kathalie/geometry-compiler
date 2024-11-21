@@ -37,7 +37,7 @@ export async function createTemplate(content: string): Promise<Template> {
   return await response.json();
 }
 
-export async function updateTemplate(id: number, content: string): Promise<Template> {
+export async function updateTemplate(id: string, content: string): Promise<Template> {
   const response = await fetch(`${BASE_URL}/templates/${id}`, {
     method: 'PUT',
     headers: {

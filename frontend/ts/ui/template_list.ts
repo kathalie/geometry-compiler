@@ -1,12 +1,11 @@
-import * as bootstrap from 'bootstrap';
-
-import { getTemplates, updateTemplate, deleteTemplate } from '../fetch';
-import {addListenerToSaveTemplateButton} from "./save_template_button";
+import { getTemplates, deleteTemplate } from '../fetch';
 
 export async function updateTemplateList() {
     try {
         // Get the template list element
         const templateList = document.getElementById('templateList') as HTMLUListElement;
+        const templateContentInput = document.getElementById('templateContent') as HTMLInputElement;
+        const createTemplateModal = document.getElementById('createTemplateModal') as HTMLInputElement;
 
         // Fetch templates from the API
         const templates = await getTemplates();
@@ -19,6 +18,7 @@ export async function updateTemplateList() {
         // Populate the list with fetched templates
         templates.forEach((template) => {
             const listItem = document.createElement('li');
+            listItem.id = "templateLi"
             listItem.className = 'list-group-item d-flex flex-column align-items-start';
             listItem.dataset.templateId = template.id.toString(); // Store the template ID in the list item
 
@@ -34,7 +34,13 @@ export async function updateTemplateList() {
             const updateButton = document.createElement('button');
             updateButton.className = 'btn btn-primary btn-sm me-2';
             updateButton.textContent = 'Оновити';
-            updateButton.addEventListener('click', () => handleUpdate(template));
+            updateButton.setAttribute('data-bs-toggle', 'modal');
+            updateButton.setAttribute('data-bs-target', '#createTemplateModal');
+            updateButton.addEventListener('click', () => {
+                templateContentInput.value = template.content;
+                createTemplateModal.setAttribute("data-template-id", String(template.id));
+                createTemplateModal.setAttribute('data-action', 'update');
+            });
 
             // Create a delete button
             const deleteButton = document.createElement('button');
@@ -72,22 +78,6 @@ export async function updateTemplateList() {
         console.error('Error updating template list:', (error as Error).message);
         alert('Failed to update template list.');
     }
-}
-
-
-
-async function handleUpdate(template: { id: number; content: string }) {
-    // Open the modal
-    const modalElement = document.getElementById('createTemplateModal') as HTMLElement;
-    const bootstrapModal = new bootstrap.Modal(modalElement);
-    bootstrapModal.show();
-
-    // Fill the modal with the current template content
-    const templateContentInput = document.getElementById('templateContent') as HTMLInputElement;
-    templateContentInput.value = template.content;
-
-    // Add event listener for save button with update logic
-    addListenerToSaveTemplateButton(true, template.id);
 }
 
 async function handleDelete(templateId: number) {
