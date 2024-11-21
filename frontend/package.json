@@ -16,6 +16,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "jsxgraph": "^1.6.2",
     "ts-loader": "^9.5.1"
   }
