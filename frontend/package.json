@@ -9,6 +9,7 @@
     "start": "npx webpack --config webpack.config.js"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
     "parcel-bundler": "^1.12.4",
     "typescript": "^5.2.2",
     "webpack": "^5.89.0",

@@ -13,16 +13,6 @@
 </head>
 <body>
 
-<!--<form id="form_for_task">-->
-<!--  <label>-->
-<!--    Введіть текст задачі:-->
-<!--    <textarea id="area_with_task"></textarea>-->
-<!--  </label>-->
-<!--  <button type="submit" id="submit_task">Відобразити рисунок</button>-->
-<!--</form>-->
-<!--<div id="jxgbox" class="jxgbox" style="max-width:800px; aspect-ratio: 1/1;"></div>-->
-<!--<div id="error_div"></div>-->
-
 <div class="container-fluid">
   <div class="row vh-100">
     <!-- Left Side Menu -->
@@ -31,7 +21,12 @@
       <ul id="templateList" class="list-group mb-3">
         <!-- Templates will be dynamically inserted here -->
       </ul>
-      <button id="createTemplateBtn" class="btn btn-success w-100 mb-3">Створити шаблон</button>
+      <button id="createTemplateBtn"
+              class="btn btn-success w-100 mb-3"
+              data-toggle="modal"
+              data-target="#createTemplateModal">
+        Створити шаблон
+      </button>
     </div>
 
     <!-- Main Content -->
@@ -50,6 +45,36 @@
       <!-- Visualization Area -->
       <div id="jxgbox" class="jxgbox border rounded shadow-sm" style="max-width: 800px; aspect-ratio: 1/1;"></div>
       <div id="error_div" class="mt-3 text-danger"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Template Creation -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1" role="dialog" aria-labelledby="createTemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createTemplateModalLabel">Create Template</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="templateForm">
+          <div class="form-group">
+            <label for="templateName">Template Name</label>
+            <input type="text" class="form-control" id="templateName" placeholder="Enter template name" required>
+          </div>
+          <div class="form-group">
+            <label for="templateDescription">Description</label>
+            <textarea class="form-control" id="templateDescription" rows="3" placeholder="Enter template description" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveTemplateBtn">Save Template</button>
+      </div>
     </div>
   </div>
 </div>
