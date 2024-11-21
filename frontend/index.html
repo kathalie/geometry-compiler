@@ -106,12 +106,6 @@
     .btn {
       border-radius: .375rem;
     }
-
-    #jxgbox {
-      max-width: 100%; /* Make sure the width is responsive */
-      height: 100%; /* Make the element take the full height of its parent */
-      aspect-ratio: 1; /* Maintain 1:1 aspect ratio */
-    }
   </style>
 </head>
 
@@ -160,7 +154,7 @@
       </form>
 
       <!-- Visualization Area -->
-      <div id="jxgbox" class="jxgbox border rounded shadow-sm" style="width: 100%; max-height: 60%; aspect-ratio: 1; overflow: hidden;"></div>
+      <div id="jxgbox" class="jxgbox border rounded shadow-sm" style="max-width:500px; aspect-ratio: 1/1; overflow: hidden;"></div>
       <div id="error_div" class="mt-3 text-danger"></div>
     </div>
 
